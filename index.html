@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>笔头冒火 - AI 春联生成</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&family=Liu+Jian+Mao+Cao&family=Long+Cang&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: #FFF8E7;
+            overflow-x: hidden;
+        }
+        /* 字体映射 */
+        .font-xingshu { font-family: 'Ma Shan Zheng', cursive; }
+        .font-kaishu { font-family: 'Noto Serif SC', serif; font-weight: 900; }
+        .font-lishu { font-family: 'Zhi Mang Xing', cursive; }
+        .font-modern { font-family: 'ZCOOL XiaoWei', serif; }
+
+        .xuanzhi-texture {
+            background-image: url('https://www.transparenttextures.com/patterns/handmade-paper.png');
+            background-repeat: repeat;
+        }
+
+        /* 1. 万年红 */
+        .bg-wan-nian-hong {
+            background: radial-gradient(circle at center, #C62828 0%, #A61B1E 70%, #8E1518 100%);
+            background-blend-mode: multiply;
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 2. 洒金 */
+        .bg-sa-jin {
+            background-color: #A61B1E;
+            background-image: 
+                repeating-radial-gradient(circle, #E6B422 0.5px, transparent 1px, transparent 40px),
+                repeating-radial-gradient(circle, #FFD700 0.2px, transparent 0.8px, transparent 65px),
+                linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            background-size: 100% 100%, 125px 125px, 200px 200px;
+            background-blend-mode: overlay;
+        }
+
+        /* 3. 剪纸风 */
+        .paper-cut-element {
+            background-color: #FDFDFD;
+            color: #A61B1E;
+            border: 2px solid #A61B1E;
+            box-shadow: 
+                2px 2px 0px #8E1518, 
+                5px 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        .paper-cut-inner-border {
+            position: absolute;
+            inset: 5px;
+            border: 1px solid rgba(166, 27, 30, 0.3);
+            pointer-events: none;
+        }
+
+        /* 4. 新国潮 */
+        .bg-guo-chao {
+            background: linear-gradient(115deg, #A61B1E 0%, #C62828 30%, #FF5252 45%, #C62828 60%, #A61B1E 100%);
+            border: 2px solid;
+            border-image: linear-gradient(to right, #E6B422, #FFD700, #E6B422) 1;
+        }
+
+        /* 宣纸纤维滤镜 */
+        .xuan-filter {
+            filter: url(#paper-texture);
+        }
+
+        @keyframes ink-spread {
+            0% { transform: scale(0); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        .ink-splash {
+            animation: ink-spread 2s ease-out forwards;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4"
+  }
+}
+</script>
+</head>
+<body class="xuanzhi-texture">
+    <!-- SVG Filters for Paper Texture -->
+    <svg style="display: none;">
+        <filter id="paper-texture">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
+            <feDiffuseLighting in="noise" lighting-color="#ffffff" surfaceScale="1.5">
+                <feDistantLight azimuth="45" elevation="60" />
+            </feDiffuseLighting>
+        </filter>
+    </svg>
+    <div id="root"></div>
+</body>
+</html>
