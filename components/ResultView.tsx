@@ -26,15 +26,15 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onBack, onRefresh }) => {
   };
 
   const WritingText = ({ text, vertical = true }: { text: string, vertical?: boolean }) => {
-    const textColor = currentTemplate.variant === 'cut' ? '#A61B1E' : currentTemplate.text;
+    const textColor = currentTemplate.text;
     
     return (
       <div className={`flex ${vertical ? 'flex-col' : 'flex-row'} items-center justify-center gap-1.5`}>
         {text.split('').map((char, i) => (
           <div key={i} className="relative flex items-center justify-center">
-            {/* Background Decorative Circle */}
+            {/* Background Decorative Circle - Adjusted for black ink context */}
             <div 
-              className={`absolute w-full h-full rounded-full border opacity-5 scale-125 transition-all duration-700 ${isWriting ? 'scale-50 opacity-0' : ''}`}
+              className={`absolute w-full h-full rounded-full border opacity-[0.03] scale-125 transition-all duration-700 ${isWriting ? 'scale-50 opacity-0' : ''}`}
               style={{ borderColor: textColor }}
             ></div>
             
@@ -47,7 +47,8 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onBack, onRefresh }) => {
                   lineHeight: '1.2',
                   color: textColor,
                   transitionDelay: `${i * 120}ms`,
-                  textShadow: currentTemplate.variant === 'modern' ? `1px 1px 0px rgba(0,0,0,0.15)` : 'none'
+                  // Black ink doesn't need light-colored glow; subtle dark depth instead
+                  textShadow: '0.5px 0.5px 1px rgba(0,0,0,0.1)'
               }}
             >
               {char}
@@ -59,39 +60,28 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onBack, onRefresh }) => {
   };
 
   const CoupletPaper = ({ children, type }: { children?: React.ReactNode, type: 'horizontal' | 'vertical' }) => {
-    const { variant } = currentTemplate;
-    
-    let className = "relative transition-all duration-700 overflow-hidden flex flex-col items-center justify-center ";
-    let style: React.CSSProperties = {
+    const paperStyle: React.CSSProperties = {
+        position: 'relative',
         width: type === 'horizontal' ? '85%' : '26%',
         paddingTop: type === 'vertical' ? '1.8rem' : '0.8rem',
         paddingBottom: type === 'vertical' ? '1.8rem' : '0.8rem',
-        minHeight: type === 'horizontal' ? '70px' : 'auto'
+        minHeight: type === 'horizontal' ? '70px' : 'auto',
+        backgroundImage: `url(${currentTemplate.image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.5s ease-in-out'
     };
 
-    switch(variant) {
-        case 'palace':
-            className += "bg-wan-nian-hong";
-            break;
-        case 'gold':
-            className += "bg-sa-jin";
-            break;
-        case 'cut':
-            className += "paper-cut-element";
-            style.borderRadius = '4px';
-            break;
-        case 'modern':
-            className += "bg-guo-chao";
-            break;
-        default:
-            style.backgroundColor = currentTemplate.bg;
-    }
-
     return (
-      <div className={className} style={style}>
-        {variant === 'cut' && <div className="paper-cut-inner-border"></div>}
-        {variant === 'palace' && <div className="absolute inset-0 pointer-events-none opacity-20 xuan-filter"></div>}
-        
+      <div style={paperStyle}>
+        {/* Subtle Overlay to ensure contrast on rich textures */}
+        <div className="absolute inset-0 bg-white/5 pointer-events-none"></div>
         <div className="relative z-10 w-full flex items-center justify-center px-1">
           {children}
         </div>
@@ -164,7 +154,7 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onBack, onRefresh }) => {
             </div>
           </div>
 
-          {/* 纸张模版 - 单行排列 */}
+          {/* 纸张模版 - 只有三种图片背景模版 */}
           <div>
             <label className="text-[10px] text-gray-400 block mb-3 font-bold uppercase tracking-[0.3em] text-center">纸张模版</label>
             <div className="flex gap-2">
@@ -172,11 +162,14 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onBack, onRefresh }) => {
                 <button
                   key={tpl.id}
                   onClick={() => setCurrentTemplate(tpl)}
-                  className={`flex-1 rounded-xl border text-[11px] transition-all duration-500 font-bold h-[44px] flex items-center justify-center px-1 ${
+                  className={`flex-1 rounded-xl border text-[11px] transition-all duration-500 font-bold h-[44px] flex items-center justify-center px-1 overflow-hidden relative ${
                     currentTemplate.id === tpl.id ? 'bg-[#A61B1E] text-[#E6B422] border-[#A61B1E] shadow-lg scale-[1.05]' : 'bg-white border-gray-100 text-gray-400'
                   }`}
                 >
-                  <span className="truncate">{tpl.name}</span>
+                  <span className="relative z-10">{tpl.name}</span>
+                  {currentTemplate.id !== tpl.id && (
+                    <div className="absolute inset-0 opacity-10 grayscale hover:grayscale-0 transition-all duration-300" style={{ backgroundImage: `url(${tpl.image})`, backgroundSize: 'cover' }}></div>
+                  )}
                 </button>
               ))}
             </div>

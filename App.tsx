@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import { AppStep, CoupletData, CoupletLength, CoupletStyle } from './types';
+import { AppStep, CoupletData, CoupletLength } from './types';
 import HomeView from './components/HomeView';
 import LoadingView from './components/LoadingView';
 import ResultView from './components/ResultView';
@@ -10,7 +10,6 @@ const App: React.FC = () => {
   const [step, setStep] = useState<AppStep>(AppStep.HOME);
   const [userName, setUserName] = useState<string>('');
   const [length, setLength] = useState<CoupletLength>(7);
-  const [style, setStyle] = useState<CoupletStyle>('大吉大利');
   const [couplet, setCouplet] = useState<CoupletData | null>(null);
 
   const handleGenerate = useCallback(async () => {
@@ -18,7 +17,7 @@ const App: React.FC = () => {
     
     setStep(AppStep.LOADING);
     try {
-      const result = await generateCouplet(userName, length, style);
+      const result = await generateCouplet(userName, length);
       setCouplet(result);
       setStep(AppStep.RESULT);
     } catch (error) {
@@ -26,7 +25,7 @@ const App: React.FC = () => {
       alert("AI 创作遇到了点瓶颈，请稍后再试。");
       setStep(AppStep.HOME);
     }
-  }, [userName, length, style]);
+  }, [userName, length]);
 
   const handleBack = () => {
     setStep(AppStep.HOME);
@@ -35,7 +34,7 @@ const App: React.FC = () => {
   const handleRefresh = async () => {
     setStep(AppStep.LOADING);
     try {
-        const result = await generateCouplet(userName, length, style);
+        const result = await generateCouplet(userName, length);
         setCouplet(result);
         setStep(AppStep.RESULT);
     } catch (error) {
@@ -52,8 +51,6 @@ const App: React.FC = () => {
           setUserName={setUserName}
           length={length}
           setLength={setLength}
-          style={style}
-          setStyle={setStyle}
           onGenerate={handleGenerate}
         />
       )}

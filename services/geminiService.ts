@@ -1,18 +1,17 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { SYSTEM_INSTRUCTION } from "../constants";
-import { CoupletData, CoupletLength, CoupletStyle } from "../types";
+import { CoupletData, CoupletLength } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export async function generateCouplet(
   userName: string,
-  length: CoupletLength,
-  style: CoupletStyle
+  length: CoupletLength
 ): Promise<CoupletData> {
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: `请为名字“${userName}”生成一副${length}言的“${style}”风格藏头春联。`,
+    contents: `请为名字“${userName}”生成一副${length}言的藏头春联，要求意境高雅、吉祥如意。`,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
