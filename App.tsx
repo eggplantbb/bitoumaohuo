@@ -5,12 +5,17 @@ import HomeView from './components/HomeView';
 import LoadingView from './components/LoadingView';
 import ResultView from './components/ResultView';
 import { generateCouplet } from './services/geminiService';
+import { FONT_OPTIONS, TEMPLATE_OPTIONS } from './constants';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<AppStep>(AppStep.HOME);
   const [userName, setUserName] = useState<string>('');
   const [length, setLength] = useState<CoupletLength>(7);
   const [couplet, setCouplet] = useState<CoupletData | null>(null);
+
+  // 状态提升：将 UI 偏好保存在顶层，保证稳定性
+  const [currentFont, setCurrentFont] = useState(FONT_OPTIONS[0]);
+  const [currentTemplate, setCurrentTemplate] = useState(TEMPLATE_OPTIONS[0]);
 
   const handleGenerate = useCallback(async () => {
     if (userName.length < 2) return;
@@ -22,7 +27,7 @@ const App: React.FC = () => {
       setStep(AppStep.RESULT);
     } catch (error) {
       console.error(error);
-      alert("AI 创作遇到了点瓶颈，请稍后再试。");
+      alert("笔尖似乎有些不顺，可能是灵感正在路上，请稍后再试一次。");
       setStep(AppStep.HOME);
     }
   }, [userName, length]);
@@ -38,7 +43,7 @@ const App: React.FC = () => {
         setCouplet(result);
         setStep(AppStep.RESULT);
     } catch (error) {
-        alert("重新生成失败");
+        alert("重新构思失败，请稍后再试。");
         setStep(AppStep.RESULT);
     }
   };
@@ -64,6 +69,10 @@ const App: React.FC = () => {
             data={couplet} 
             onBack={handleBack} 
             onRefresh={handleRefresh}
+            currentFont={currentFont}
+            setCurrentFont={setCurrentFont}
+            currentTemplate={currentTemplate}
+            setCurrentTemplate={setCurrentTemplate}
         />
       )}
     </div>

@@ -17,91 +17,73 @@ const HomeView: React.FC<HomeViewProps> = ({
   setLength,
   onGenerate,
 }) => {
-  const getOptionClass = (active: boolean) => {
-    return `flex-1 py-3 rounded-2xl border-2 text-sm transition-all duration-300 font-bold flex items-center justify-center ${
-      active
-        ? 'bg-[#A61B1E] text-[#E6B422] border-[#A61B1E] shadow-lg scale-[1.05]'
-        : 'bg-white/80 border-[#A61B1E]/10 text-[#A61B1E] hover:border-[#A61B1E]/30'
-    }`;
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 relative">
-      {/* Decorative background elements */}
-      <div className="absolute top-10 right-10 opacity-10 pointer-events-none">
-        <svg width="120" height="120" viewBox="0 0 100 100" className="text-[#A61B1E] fill-current">
-          <path d="M50 5 L95 50 L50 95 L5 50 Z" />
-        </svg>
-      </div>
-      <div className="absolute bottom-10 left-10 opacity-10 pointer-events-none scale-x-[-1]">
-        <svg width="100" height="100" viewBox="0 0 100 100" className="text-[#A61B1E] fill-current">
-          <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="2" fill="none" />
-          <path d="M30 50 L70 50 M50 30 L50 70" />
-        </svg>
+    <div className="h-screen flex flex-col items-center justify-between p-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] overflow-hidden">
+      {/* 顶部装饰 */}
+      <div className="w-full flex justify-between opacity-20 mt-4 px-2">
+        <div className="w-12 h-12 border-l border-t border-[#A61B1E]"></div>
+        <div className="w-12 h-12 border-r border-t border-[#A61B1E]"></div>
       </div>
 
-      <div className="mb-12 text-center">
-        <h1 className="text-5xl font-black mb-3 tracking-[0.2em] text-[#A61B1E] font-xingshu">笔头冒火</h1>
-        <div className="h-0.5 w-16 bg-[#A61B1E] mx-auto mb-3 opacity-30"></div>
-        <p className="text-gray-500 text-xs tracking-[0.4em] font-medium uppercase">乙巳蛇年 · AI 挥毫</p>
-      </div>
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm space-y-12">
+        <div className="text-center space-y-2">
+          <h1 className="text-6xl font-black text-[#A61B1E] font-xingshu tracking-widest animate-pulse">笔头冒火</h1>
+          <div className="flex items-center justify-center gap-4 text-gray-400 text-[10px] tracking-[0.5em] font-bold uppercase">
+             <span>乙巳蛇年</span>
+             <span className="w-1.5 h-1.5 rounded-full bg-[#E6B422]"></span>
+             <span>AI 挥毫</span>
+          </div>
+        </div>
 
-      <div className="w-full max-w-[340px] space-y-10 bg-white/50 p-8 rounded-[3rem] backdrop-blur-2xl border border-[#E6B422]/20 shadow-2xl">
-        {/* 姓名输入 */}
-        <div className="space-y-4 text-center">
-          <label className="block text-[10px] font-bold text-[#A61B1E] uppercase tracking-[0.4em] opacity-40">
-            请输入您的姓名
-          </label>
-          <div className="relative inline-block w-full">
-            <input
+        <div className="w-full space-y-10 bg-white/40 backdrop-blur-xl p-8 rounded-[3rem] border border-[#A61B1E]/5 shadow-2xl">
+          <div className="space-y-4">
+             <p className="text-[10px] text-center text-[#A61B1E]/40 font-bold tracking-[0.4em] uppercase">入墨姓名</p>
+             <input
               type="text"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
               maxLength={2}
-              placeholder="姓名"
-              className="w-full bg-transparent border-b-2 border-[#A61B1E]/10 focus:border-[#A61B1E] outline-none text-5xl text-center py-4 font-xingshu transition-all placeholder:text-gray-200 placeholder:text-3xl text-[#333333]"
+              placeholder="二字"
+              className="w-full bg-transparent border-b border-[#A61B1E]/10 focus:border-[#A61B1E] outline-none text-6xl text-center py-4 font-xingshu transition-all placeholder:text-gray-100 text-[#333]"
             />
           </div>
-        </div>
 
-        {/* 字数选择 */}
-        <div className="space-y-4">
-          <label className="block text-[10px] font-bold text-[#A61B1E] uppercase tracking-[0.4em] text-center opacity-40">
-            选择对联篇幅
-          </label>
-          <div className="flex gap-4">
-            {[5, 7].map((l) => (
-              <button
-                key={l}
-                onClick={() => setLength(l as CoupletLength)}
-                className={getOptionClass(length === l)}
-              >
-                {l}言对联
-              </button>
-            ))}
+          <div className="space-y-4">
+             <p className="text-[10px] text-center text-[#A61B1E]/40 font-bold tracking-[0.4em] uppercase">对联篇幅</p>
+             <div className="flex gap-4">
+                {[5, 7].map(l => (
+                    <button 
+                        key={l} 
+                        onClick={() => setLength(l as CoupletLength)}
+                        className={`flex-1 py-3 rounded-2xl font-bold text-sm border-2 transition-all ${length === l ? 'bg-[#A61B1E] text-[#E6B422] border-[#A61B1E] shadow-lg scale-105' : 'bg-white/50 text-[#A61B1E] border-transparent'}`}
+                    >
+                        {l}言
+                    </button>
+                ))}
+             </div>
           </div>
-        </div>
 
-        {/* 生成按钮 */}
-        <div className="pt-4">
           <button
             onClick={onGenerate}
             disabled={userName.length < 2}
-            className={`w-full py-5 rounded-[2rem] font-bold text-xl shadow-xl transform transition-all active:scale-95 ${
+            className={`w-full py-5 rounded-[2rem] font-bold text-xl transition-all shadow-xl active:scale-95 ${
               userName.length < 2
                 ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                : 'bg-[#A61B1E] text-[#E6B422] border border-[#E6B422]/20 hover:brightness-110'
+                : 'bg-[#A61B1E] text-[#E6B422] hover:brightness-110'
             }`}
           >
-            生成我的对联
+            落笔生辉
           </button>
         </div>
       </div>
-      
-      <div className="mt-12 text-gray-300 text-[9px] text-center tracking-widest font-bold">
-        <p>乙巳年制 · 笔头冒火</p>
-        <p className="mt-1 opacity-50">TRADITIONAL WISDOM MEETS AI</p>
+
+      {/* 底部装饰 */}
+      <div className="w-full flex justify-between opacity-20 mb-4 px-2">
+        <div className="w-12 h-12 border-l border-b border-[#A61B1E]"></div>
+        <div className="w-12 h-12 border-r border-b border-[#A61B1E]"></div>
       </div>
+      
+      <p className="fixed bottom-6 text-[8px] text-gray-300 tracking-[0.6em] uppercase font-bold">Traditional Wisdom x Modern AI</p>
     </div>
   );
 };

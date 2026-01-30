@@ -7,48 +7,64 @@ interface ResultViewProps {
   data: CoupletData;
   onBack: () => void;
   onRefresh: () => void;
+  currentFont: typeof FONT_OPTIONS[0];
+  setCurrentFont: (font: typeof FONT_OPTIONS[0]) => void;
+  currentTemplate: typeof TEMPLATE_OPTIONS[0];
+  setCurrentTemplate: (tpl: typeof TEMPLATE_OPTIONS[0]) => void;
 }
 
-const ResultView: React.FC<ResultViewProps> = ({ data, onBack, onRefresh }) => {
-  const [currentFont, setCurrentFont] = useState(FONT_OPTIONS[0]);
-  const [currentTemplate, setCurrentTemplate] = useState(TEMPLATE_OPTIONS[0]);
+const ResultView: React.FC<ResultViewProps> = ({ 
+    data, 
+    onBack, 
+    onRefresh,
+    currentFont,
+    setCurrentFont,
+    currentTemplate,
+    setCurrentTemplate
+}) => {
   const [isWriting, setIsWriting] = useState(true);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [shareTip, setShareTip] = useState(false);
 
   useEffect(() => {
     setIsWriting(true);
     const timer = setTimeout(() => setIsWriting(false), 800);
     return () => clearTimeout(timer);
-  }, [data, currentFont, currentTemplate]);
+  }, [data]);
 
-  const handleShare = () => {
-    alert("正在保存高清海报到相册...");
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '笔头冒火 - 我的专属春联',
+          text: `我生成了一副姓名藏头联：${data.upper}，${data.lower}。快来定制你的吧！`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        setShareTip(true);
+        setTimeout(() => setShareTip(false), 3000);
+      }
+    } else {
+      // 降级方案：复制链接或显示截图提示
+      navigator.clipboard.writeText(window.location.href);
+      setShareTip(true);
+      setTimeout(() => setShareTip(false), 3000);
+    }
   };
 
   const WritingText = ({ text, vertical = true }: { text: string, vertical?: boolean }) => {
-    const textColor = currentTemplate.text;
-    
     return (
       <div className={`flex ${vertical ? 'flex-col' : 'flex-row'} items-center justify-center gap-1.5`}>
         {text.split('').map((char, i) => (
           <div key={i} className="relative flex items-center justify-center">
-            {/* Background Decorative Circle - Adjusted for black ink context */}
-            <div 
-              className={`absolute w-full h-full rounded-full border opacity-[0.03] scale-125 transition-all duration-700 ${isWriting ? 'scale-50 opacity-0' : ''}`}
-              style={{ borderColor: textColor }}
-            ></div>
-            
             <span
-              className={`${currentFont.className} relative z-10 transition-all duration-700 ${
+              className={`${currentFont.className} ink-text relative z-10 transition-all duration-700 ${
                 isWriting ? 'opacity-0 translate-y-4 blur-sm' : 'opacity-100 translate-y-0 blur-0'
               }`}
               style={{ 
-                  fontSize: vertical ? (data.upper.length > 5 ? '2.1rem' : '2.8rem') : '1.7rem',
-                  lineHeight: '1.2',
-                  color: textColor,
+                  fontSize: vertical ? (data.upper.length > 5 ? '1.8rem' : '2.4rem') : '1.5rem',
+                  lineHeight: vertical ? '1.1' : '1.2',
+                  color: currentTemplate.text,
                   transitionDelay: `${i * 120}ms`,
-                  // Black ink doesn't need light-colored glow; subtle dark depth instead
-                  textShadow: '0.5px 0.5px 1px rgba(0,0,0,0.1)'
               }}
             >
               {char}
@@ -60,136 +76,110 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onBack, onRefresh }) => {
   };
 
   const CoupletPaper = ({ children, type }: { children?: React.ReactNode, type: 'horizontal' | 'vertical' }) => {
-    const paperStyle: React.CSSProperties = {
-        position: 'relative',
-        width: type === 'horizontal' ? '85%' : '26%',
-        paddingTop: type === 'vertical' ? '1.8rem' : '0.8rem',
-        paddingBottom: type === 'vertical' ? '1.8rem' : '0.8rem',
-        minHeight: type === 'horizontal' ? '70px' : 'auto',
-        backgroundImage: `url(${currentTemplate.image})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.5s ease-in-out'
-    };
-
     return (
-      <div style={paperStyle}>
-        {/* Subtle Overlay to ensure contrast on rich textures */}
-        <div className="absolute inset-0 bg-white/5 pointer-events-none"></div>
-        <div className="relative z-10 w-full flex items-center justify-center px-1">
-          {children}
-        </div>
+      <div 
+        className="relative flex items-center justify-center transition-all duration-500 shadow-xl"
+        style={{
+          width: type === 'horizontal' ? '80%' : '24%',
+          padding: type === 'vertical' ? '1.5rem 0' : '0.6rem 0',
+          backgroundImage: `url(${currentTemplate.image})`,
+          backgroundSize: '100% 100%',
+          borderRadius: '2px'
+        }}
+      >
+        {children}
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7] flex flex-col items-center py-6 px-4 overflow-y-auto" ref={containerRef}>
-      {/* Header */}
-      <header className="w-full max-w-lg flex justify-between items-center mb-6 px-2">
-        <button onClick={onBack} className="text-[#A61B1E] text-xs font-bold flex items-center bg-white/70 backdrop-blur-md px-5 py-2.5 rounded-full shadow-sm hover:bg-white transition-all active:scale-95">
-            <span className="mr-1">←</span> 返回
+    <div className="h-screen flex flex-col bg-[#FFF8E7] overflow-hidden pt-[env(safe-area-inset-top)]">
+      {/* 顶部导航 */}
+      <header className="flex justify-between items-center px-6 py-4 shrink-0">
+        <button onClick={onBack} className="text-[#A61B1E] text-xs font-bold px-4 py-2 bg-white/50 rounded-full border border-[#A61B1E]/10">
+          返回重写
         </button>
-        <div className="flex flex-col items-center">
-            <h2 className="text-[#A61B1E] font-xingshu text-3xl tracking-tight leading-none">笔头冒火</h2>
-            <span className="text-[8px] text-[#A61B1E]/40 uppercase tracking-[0.3em] mt-1 font-bold">乙巳年制</span>
+        <div className="text-center">
+            <h2 className="text-[#A61B1E] font-xingshu text-2xl tracking-tighter">笔头冒火</h2>
+            <p className="text-[8px] text-[#A61B1E]/40 tracking-widest -mt-1 font-bold">BY AI BRUSH</p>
         </div>
-        <button onClick={onRefresh} className="text-[#A61B1E] text-xs font-bold bg-white/70 backdrop-blur-md px-5 py-2.5 rounded-full shadow-sm hover:bg-white transition-all active:scale-95">
-            换一组
+        <button onClick={onRefresh} className="text-[#A61B1E] text-xs font-bold px-4 py-2 bg-white/50 rounded-full border border-[#A61B1E]/10">
+          换一换
         </button>
       </header>
 
-      {/* 寓意置顶 */}
-      <div className="w-full max-w-sm mb-8 bg-white/50 backdrop-blur-lg p-5 rounded-[1.5rem] border border-[#A61B1E]/10 shadow-sm">
-        <p className="text-[12px] text-gray-600 leading-relaxed text-center font-medium">
-          <span className="text-[#A61B1E] font-bold mr-2">【 寓意 】</span>
-          {data.interpretation}
-        </p>
+      {/* 主展示区 */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-32">
+        <div className="w-full max-w-sm mx-auto space-y-8 mt-4">
+            {/* 寓意 */}
+            <div className="bg-white/40 backdrop-blur-sm p-4 rounded-2xl border border-[#A61B1E]/5 shadow-sm text-center">
+                <span className="text-[#A61B1E] text-[10px] font-black tracking-widest block mb-2">【 意 蕴 】</span>
+                <p className="text-xs text-gray-600 leading-relaxed font-medium">{data.interpretation}</p>
+            </div>
+
+            {/* 对联视觉实体 */}
+            <div className="flex flex-col items-center gap-4">
+                <CoupletPaper type="horizontal">
+                    <WritingText text={data.horizontal} vertical={false} />
+                </CoupletPaper>
+                <div className="w-full flex justify-between px-2 items-start">
+                    <CoupletPaper type="vertical">
+                        <WritingText text={data.upper} />
+                    </CoupletPaper>
+                    <div className="flex flex-col items-center pt-24 opacity-10">
+                        <div className="w-[1px] h-32 bg-[#A61B1E]"></div>
+                        <span className="text-[#A61B1E] font-xingshu text-xl py-4">乙巳</span>
+                        <div className="w-[1px] h-32 bg-[#A61B1E]"></div>
+                    </div>
+                    <CoupletPaper type="vertical">
+                        <WritingText text={data.lower} />
+                    </CoupletPaper>
+                </div>
+            </div>
+        </div>
       </div>
 
-      {/* Couplet Display Area */}
-      <div className="w-full max-w-[360px] flex flex-col items-center gap-8 mb-10 transform transition-all duration-500">
-        {/* Horizontal Piece */}
-        <CoupletPaper type="horizontal">
-          <WritingText text={data.horizontal} vertical={false} />
-        </CoupletPaper>
-
-        {/* Vertical Pieces */}
-        <div className="w-full flex justify-around items-start px-2">
-          <CoupletPaper type="vertical">
-            <WritingText text={data.upper} />
-          </CoupletPaper>
+      {/* 底部悬浮控制台 */}
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FFF8E7] via-[#FFF8E7] to-transparent pt-12 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        <div className="max-w-md mx-auto bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl p-5 border border-white/50">
+          <div className="flex gap-4 mb-5">
+            <div className="flex-1 space-y-2">
+                <p className="text-[9px] text-gray-400 font-bold text-center uppercase tracking-widest">字体</p>
+                <div className="flex gap-1.5">
+                    {FONT_OPTIONS.map(f => (
+                        <button key={f.id} onClick={() => setCurrentFont(f)} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${currentFont.id === f.id ? 'bg-[#A61B1E] text-[#E6B422]' : 'bg-gray-50 text-gray-400'}`}>
+                            <span className={f.className}>{f.name}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <div className="flex-1 space-y-2">
+                <p className="text-[9px] text-gray-400 font-bold text-center uppercase tracking-widest">纸张</p>
+                <div className="flex gap-1.5">
+                    {TEMPLATE_OPTIONS.map(t => (
+                        <button key={t.id} onClick={() => setCurrentTemplate(t)} className={`flex-1 py-2 rounded-lg text-[11px] font-bold transition-all ${currentTemplate.id === t.id ? 'bg-[#A61B1E] text-[#E6B422]' : 'bg-gray-50 text-gray-400'}`}>
+                            {t.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
+          </div>
           
-          <CoupletPaper type="vertical">
-            <WritingText text={data.lower} />
-          </CoupletPaper>
-        </div>
-      </div>
-
-      {/* Control Panel */}
-      <div className="w-full max-w-sm bg-white/80 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-[#E6B422]/20 shadow-2xl space-y-6">
-        
-        <div className="space-y-5">
-          {/* 书法字体 */}
-          <div>
-            <label className="text-[10px] text-gray-400 block mb-3 font-bold uppercase tracking-[0.3em] text-center">书法字体</label>
-            <div className="flex gap-2">
-              {FONT_OPTIONS.map(font => (
-                <button
-                  key={font.id}
-                  onClick={() => setCurrentFont(font)}
-                  className={`flex-1 py-2.5 rounded-xl border text-sm transition-all duration-500 font-bold h-[44px] flex items-center justify-center ${
-                    currentFont.id === font.id ? 'bg-[#A61B1E] text-[#E6B422] border-[#A61B1E] shadow-lg scale-[1.05]' : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'
-                  }`}
-                >
-                  <span className={font.className}>{font.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 纸张模版 - 只有三种图片背景模版 */}
-          <div>
-            <label className="text-[10px] text-gray-400 block mb-3 font-bold uppercase tracking-[0.3em] text-center">纸张模版</label>
-            <div className="flex gap-2">
-              {TEMPLATE_OPTIONS.map(tpl => (
-                <button
-                  key={tpl.id}
-                  onClick={() => setCurrentTemplate(tpl)}
-                  className={`flex-1 rounded-xl border text-[11px] transition-all duration-500 font-bold h-[44px] flex items-center justify-center px-1 overflow-hidden relative ${
-                    currentTemplate.id === tpl.id ? 'bg-[#A61B1E] text-[#E6B422] border-[#A61B1E] shadow-lg scale-[1.05]' : 'bg-white border-gray-100 text-gray-400'
-                  }`}
-                >
-                  <span className="relative z-10">{tpl.name}</span>
-                  {currentTemplate.id !== tpl.id && (
-                    <div className="absolute inset-0 opacity-10 grayscale hover:grayscale-0 transition-all duration-300" style={{ backgroundImage: `url(${tpl.image})`, backgroundSize: 'cover' }}></div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <button 
+          <button 
             onClick={handleShare}
-            className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 ${
-              isWriting ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-[#A61B1E] text-[#E6B422] border border-[#E6B422]/30 hover:brightness-110'
-            }`}
-        >
-            {isWriting ? (
-                <>
-                    <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin"></div>
-                    正在挥毫...
-                </>
-            ) : '保存到相册'}
-        </button>
+            className="w-full py-4 bg-[#A61B1E] text-[#E6B422] rounded-2xl font-bold shadow-lg shadow-[#A61B1E]/20 active:scale-95 transition-all"
+          >
+            分享链接 / 保存海报
+          </button>
+        </div>
       </div>
+
+      {/* 分享提示弹窗 */}
+      {shareTip && (
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/80 text-white px-6 py-4 rounded-2xl z-50 text-sm font-bold whitespace-nowrap animate-bounce">
+            {navigator.share ? "请点击浏览器菜单分享" : "链接已复制，截图分享更佳！"}
+        </div>
+      )}
     </div>
   );
 };

@@ -3,8 +3,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>笔头冒火 - AI 春联生成</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>笔头冒火 - AI 艺术春联</title>
+    <!-- 社交媒体分享预览 -->
+    <meta name="description" content="乙巳年 AI 挥毫，为您定制专属姓名藏头春联">
+    <meta property="og:title" content="笔头冒火 - AI 艺术春联">
+    <meta property="og:description" content="输入姓名，即刻生成国风艺术春联">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -24,13 +29,20 @@
             font-display: swap;
         }
 
+        :root {
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
         body {
             font-family: 'Noto Serif SC', serif;
             background-color: #FFF8E7;
-            overflow-x: hidden;
+            color: #333;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
         
-        /* 字体映射 */
         .font-xingshu { font-family: 'CustomXingshu', cursive; }
         .font-kaishu { font-family: 'CustomKaishu', serif; }
         .font-lishu { font-family: 'CustomLishu', cursive; }
@@ -40,14 +52,14 @@
             background-repeat: repeat;
         }
 
-        @keyframes ink-spread {
-            0% { transform: scale(0); opacity: 0; }
-            50% { opacity: 0.6; }
-            100% { transform: scale(3); opacity: 0; }
+        .ink-text {
+            mix-blend-mode: multiply;
+            filter: drop-shadow(0.5px 0.5px 0px rgba(0,0,0,0.1));
         }
-        .ink-splash {
-            animation: ink-spread 2s ease-out forwards;
-        }
+
+        /* 隐藏滚动条但保留滚动 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 <script type="importmap">
 {
@@ -60,7 +72,7 @@
 }
 </script>
 </head>
-<body class="xuanzhi-texture">
-    <div id="root"></div>
+<body class="xuanzhi-texture overflow-hidden h-full">
+    <div id="root" class="h-full"></div>
 </body>
 </html>
